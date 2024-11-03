@@ -17,5 +17,30 @@ namespace api.Services
         {
             return await _database.CreateContainerIfNotExistsAsync(containerName, "/userid");
         }
+
+        public async Task CreateItemAsync<T>(string containerName, T item)
+        {
+            var container = await GetContainerAsync(containerName);
+            await container.CreateItemAsync(item);
+        }
+
+        public async Task<T> ReadItemAsync<T>(string containerName, string id)
+        {
+            var container = await GetContainerAsync(containerName);
+            var response = await container.ReadItemAsync<T>(id, new PartitionKey(id));
+            return response.Resource;
+        }
+
+        public async Task UpdateItemAsync<T>(string containerName, string id, T item)
+        {
+            var container = await GetContainerAsync(containerName);
+            await container.ReplaceItemAsync(item, id, new PartitionKey(id));
+        }
+
+        public async Task DeleteItemAsync<T>(string containerName, string id)
+        {
+            var container = await GetContainerAsync(containerName);
+            await container.DeleteItemAsync<T>(id, new PartitionKey(id));
+        }
     }
 }
