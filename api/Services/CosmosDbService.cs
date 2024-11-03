@@ -15,7 +15,7 @@ namespace api.Services
 
         public async Task<Container> GetContainerAsync(string containerName)
         {
-            return await _database.CreateContainerIfNotExistsAsync(containerName, "/id");
+            return await _database.CreateContainerIfNotExistsAsync(containerName, "/userid");
         }
     }
 }
