@@ -5,6 +5,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CosmosDbService singleton to the service container
+builder.Services.AddSingleton<CosmosDbService>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var cosmosDbSettings = configuration.GetSection("CosmosDb").Get<CosmosDbSettings>();
+    return new CosmosDbService(cosmosDbSettings);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -41,4 +49,11 @@ app.Run();
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
+
+public class CosmosDbSettings
+{
+    public string Account { get; set; }
+    public string Key { get; set; }
+    public string DatabaseName { get; set; }
 }
