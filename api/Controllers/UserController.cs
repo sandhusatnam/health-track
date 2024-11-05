@@ -12,15 +12,17 @@ namespace api.Controllers
     {
         private readonly string USER_CONTAINER = "Users";
 
-        private readonly ILogger<UserController> _logger;
         private readonly CosmosDbService _cosmosDbService;
 
-        public UserController(ILogger<UserController> logger, CosmosDbService cosmosDbService)
+        public UserController(CosmosDbService cosmosDbService)
         {
-            _logger = logger;
             _cosmosDbService = cosmosDbService;
         }
 
+        /// <summary>
+        /// Fetch all the registered users
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IEnumerable<AppUser>> GetUsers()
         {
@@ -38,6 +40,10 @@ namespace api.Controllers
             return results;
         }
 
+        /// <summary>
+        /// Get a user by id
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("{userId}")]
         public async Task<ActionResult<AppUser>> GetUserById([FromRoute] string userId)
         {
@@ -53,6 +59,11 @@ namespace api.Controllers
             }
         }
 
+        /// <summary>
+        /// Create a user with the given email
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<AppUser>> CreateUser([FromBody] CreateUserDTO user)
         {
@@ -75,6 +86,11 @@ namespace api.Controllers
             return BadRequest("Email is required");
         }
 
+        /// <summary>
+        /// Delete a user by id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpDelete("{userId}")]
         public async Task<IActionResult> DeleteUser([FromRoute] string userId)
         {
