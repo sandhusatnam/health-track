@@ -1,7 +1,7 @@
-import { FC, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FC, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -9,40 +9,53 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { createUser, fetchUserByEmail } from "@/setup/api/user.api";
+import { AppUser } from "@/setup/types";
 
 interface LoginProps {
-  onLogin: (username: string) => void
+  onLogin: (loggedInUser: AppUser) => void;
 }
 
 const LoginPage: FC<LoginProps> = ({ onLogin }) => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const { toast } = useToast()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // In a real application, you would handle authentication here
-    if (email && password) {
-      // Simulating a successful login
-      toast({
-        title: 'Login Successful',
-        description: 'Welcome to Health Track!',
-        variant: 'success',
-        duration: 1000
-      })
+  const { toast } = useToast();
 
-      onLogin(email)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    if (!!email && !!password) {
+      let user = await fetchUserByEmail(email);
+      if (user === null || user.email === "") {
+        user = await createUser(email);
+      }
+
+      if (!!user && !!user.email) {
+        onLogin(user);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to login, please try again later.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
     } else {
       toast({
-        title: 'Login Failed',
-        description: 'Please enter both email and password.',
-        variant: 'destructive',
-        duration: 2000
-      })
+        title: "Login Failed",
+        description: "Please enter both email and password.",
+        variant: "destructive",
+        duration: 2000,
+      });
     }
-  }
+
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -80,20 +93,31 @@ const LoginPage: FC<LoginProps> = ({ onLogin }) => {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Login
-              </Button>
+                <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+                >
+                {isSubmitting ? "Loading..." : "Login"}
+                </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground text-center">
-              For beta access, contact <a href="mailto:info@healthtrack.com" className="text-blue-500 underline">info@healthtrack.com</a>.
+              For beta access, contact{" "}
+              <a
+                href="mailto:info@healthtrack.com"
+                className="text-blue-500 underline"
+              >
+                info@healthtrack.com
+              </a>
+              .
             </p>
           </CardFooter>
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

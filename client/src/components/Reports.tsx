@@ -1,64 +1,67 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useState, FC } from 'react'
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { fetchUserProgress } from "@/setup/api/log.api";
+import { GenericProps, UserProgress, UserProgressReport } from "@/setup/types";
+import { FC, useEffect, useMemo, useState } from "react";
 import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+  PolarAngleAxis,
+  RadialBar,
+  RadialBarChart,
+  ResponsiveContainer
+} from "recharts";
+import Loading from "./ui/loading";
+import { getFillColor } from "@/setup/utils";
 
-type ReportType = 'calories' | 'water' | 'activity' | 'sleep'
+const Reports: FC<GenericProps> = ({ loggedInUser }) => {
+  const [reportType, setReportType] = useState("meal");
+  const [dailyStats, setDailyStats] = useState<UserProgress[]>([] as UserProgress[]);
 
-const mockData: Record<ReportType, { date: string; value: number }[]> = {
-  calories: [
-    { date: '2023-06-01', value: 1800 },
-    { date: '2023-06-02', value: 2100 },
-    { date: '2023-06-03', value: 1950 },
-    { date: '2023-06-04', value: 2200 },
-    { date: '2023-06-05', value: 1850 },
-    { date: '2023-06-06', value: 2000 },
-    { date: '2023-06-07', value: 2150 },
-  ],
-  water: [
-    { date: '2023-06-01', value: 1.5 },
-    { date: '2023-06-02', value: 2.0 },
-    { date: '2023-06-03', value: 1.8 },
-    { date: '2023-06-04', value: 2.2 },
-    { date: '2023-06-05', value: 1.7 },
-    { date: '2023-06-06', value: 2.1 },
-    { date: '2023-06-07', value: 2.3 },
-  ],
-  activity: [
-    { date: '2023-06-01', value: 30 },
-    { date: '2023-06-02', value: 45 },
-    { date: '2023-06-03', value: 60 },
-    { date: '2023-06-04', value: 30 },
-    { date: '2023-06-05', value: 45 },
-    { date: '2023-06-06', value: 60 },
-    { date: '2023-06-07', value: 75 },
-  ],
-  sleep: [
-    { date: '2023-06-01', value: 7 },
-    { date: '2023-06-02', value: 6.5 },
-    { date: '2023-06-03', value: 8 },
-    { date: '2023-06-04', value: 7.5 },
-    { date: '2023-06-05', value: 7 },
-    { date: '2023-06-06', value: 6 },
-    { date: '2023-06-07', value: 7.5 },
-  ],
-}
+  const [isLoading, setIsLoading] = useState(true);
 
-const Reports: FC = () => {
-  const [reportType, setReportType] = useState('calories')
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUserProgress(loggedInUser.id)
+      .then((data) => {
+        setDailyStats(data!);
+      })
+      .catch((error) => {
+        setDailyStats([]);
+
+        toast({
+          title: "Error",
+          description:
+            "Something went wrong while fetching user progress, please try again later",
+          variant: "destructive",
+          duration: 3000,
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [loggedInUser.id]);
+
+
+  const chartData = useMemo(() => 
+    dailyStats
+      .filter(item => item.type.toLowerCase() === reportType.toLowerCase())
+      .map(item => ({ ...item, fill: getFillColor(reportType) }))
+  , [reportType, dailyStats]);
+
+  if (dailyStats == null || dailyStats.length === 0) {
+    return <p className="text-center w-full">No data available</p>;
+  }
+
+  if (isLoading) {
+    return <Loading />
+  }
 
   return (
     <div className="space-y-4">
@@ -67,7 +70,7 @@ const Reports: FC = () => {
           <SelectValue placeholder="Select report type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="calories">Calories</SelectItem>
+          <SelectItem value="meal">Calories</SelectItem>
           <SelectItem value="water">Water</SelectItem>
           <SelectItem value="activity">Physical Activity</SelectItem>
           <SelectItem value="sleep">Sleep</SelectItem>
@@ -82,17 +85,27 @@ const Reports: FC = () => {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockData[reportType as ReportType]}>
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#8884d8" />
-            </LineChart>
+            <RadialBarChart
+              width={730}
+              height={500}
+              innerRadius="10%"
+              outerRadius="80%"
+              data={chartData}
+              startAngle={180}
+              endAngle={0}
+            >
+              <PolarAngleAxis type="number" domain={[0, chartData?.[0]?.target]} />
+              <RadialBar
+                label={{ position: 'insideStart', fill: '#fff' }}
+                background
+                dataKey="value"
+              />
+            </RadialBarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default Reports
+export default Reports;

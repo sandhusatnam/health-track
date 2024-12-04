@@ -3,6 +3,8 @@ using api.Services;
 using Microsoft.Azure.Cosmos;
 using api.Models;
 using api.Models.DTO;
+using api.Contracts;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace api.Controllers
 {
@@ -10,53 +12,55 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly string USER_CONTAINER = "Users";
+        private readonly IUserRepository _userRepository;
 
-        private readonly CosmosDbService _cosmosDbService;
-
-        public UserController(CosmosDbService cosmosDbService)
+        public UserController(IUserRepository userRepository)
         {
-            _cosmosDbService = cosmosDbService;
+            _userRepository = userRepository;
         }
 
         /// <summary>
         /// Fetch all the registered users
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("[action]")]
         public async Task<IEnumerable<AppUser>> GetUsers()
         {
-            var container = await _cosmosDbService.GetContainerAsync(USER_CONTAINER);
-            var query = new QueryDefinition("SELECT * FROM c");
-            var iterator = container.GetItemQueryIterator<AppUser>(query);
-            var results = new List<AppUser>();
-
-            while (iterator.HasMoreResults)
-            {
-                var response = await iterator.ReadNextAsync();
-                results.AddRange(response);
-            }
-
-            return results;
+            return await _userRepository.GetUsers();
         }
 
         /// <summary>
         /// Get a user by id
         /// </summary>
         /// <returns></returns>
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<AppUser>> GetUserById([FromRoute] string userId)
+        [HttpGet("[action]")]
+        public async Task<ActionResult<AppUser>> GetUserByEmail([FromQuery] string email)
         {
-            var container = await _cosmosDbService.GetContainerAsync(USER_CONTAINER);
-            try
-            {
-                var response = await container.ReadItemAsync<AppUser>(userId, new PartitionKey(userId));
-                return Ok(response.Resource);
-            }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            var user = await _userRepository.GetUserByEmail(email);
+
+            if (user == null)
             {
                 return NotFound();
             }
+
+            return Ok(user);
+        }
+
+        /// <summary>
+        /// Get a user by id
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("[action]")]
+        public async Task<ActionResult<AppUser>> GetUserById([FromQuery] string userId)
+        {
+            var user = await _userRepository.GetUserById(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
         }
 
         /// <summary>
@@ -64,23 +68,16 @@ namespace api.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPost("[action]")]
         public async Task<ActionResult<AppUser>> CreateUser([FromBody] CreateUserDTO user)
         {
             if (user != null && !string.IsNullOrEmpty(user.email))
             {
-                var appUser = new AppUser
-                {
-                    id = Guid.NewGuid().ToString(),
-                    email = user.email
-                };
+                await _userRepository.CreateUser(user);
 
-                await _cosmosDbService.CreateItemAsync(USER_CONTAINER, appUser);
+                var appUser = await _userRepository.GetUserByEmail(user.email);
 
-                return CreatedAtAction(nameof(GetUserById), new
-                {
-                    userId = appUser.id
-                }, appUser);
+                return Ok(appUser);
             }
 
             return BadRequest("Email is required");
@@ -91,19 +88,17 @@ namespace api.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUser([FromRoute] string userId)
+        [HttpDelete("[action]")]
+        public async Task<IActionResult> DeleteUser([FromQuery] string userId)
         {
-            var container = await _cosmosDbService.GetContainerAsync(USER_CONTAINER);
-            try
+           bool result = await _userRepository.DeleteUser(userId);
+
+            if (result)
             {
-                await container.DeleteItemAsync<User>(userId, new PartitionKey(userId));
                 return NoContent();
             }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                return NotFound();
-            }
+
+            return NotFound();
         }
     }
 }
