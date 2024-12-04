@@ -7,7 +7,7 @@ namespace api.Models.Log
     {
         public string? id { get; set; }
         public string userId { get; set; }
-        public DateTime timestamp { get; set; }
+        //public DateTime timestamp { get; set; }
         public string type { get; set; } = "activity";
         public LogDetails details { get; set; }
 
@@ -18,14 +18,7 @@ namespace api.Models.Log
 
             details = new LogDetails();
             details.duration = duration;
-            details.calories = CalculateCaloriesBurned();
-        }
-
-        public double CalculateCaloriesBurned()
-        {
-            // Sample calculation: calories burned per minute * duration in minutes
-            double caloriesPerMinute = 10;
-            return caloriesPerMinute * details.duration;
+            details.value = duration;
         }
     }
 }

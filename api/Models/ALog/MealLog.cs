@@ -7,18 +7,20 @@ namespace api.Models.Log
     {
         public string? id { get; set; }
         public string userId { get; set; }
-        public DateTime timestamp { get; set; }
-        public string type { get; set; } = "swimming";
+        //public DateTime timestamp { get; set; }
+        public string type { get; set; } = "meal";
         public LogDetails details { get; set; }
 
-        public MealLog(string _userId, string foodName, IFoodApiAdapter thirdPartyApiService)
+        public MealLog(string _userId, double calories, string foodName, IFoodApiAdapter thirdPartyApiService)
         {
             id = "fo" + Guid.NewGuid().ToString();
             userId = _userId;
 
             details = new LogDetails();
             details.foodName = foodName;
-            details.calories = CalculateCalories(thirdPartyApiService);
+            double calcCalories = calories > 0 ? calories : CalculateCalories(thirdPartyApiService);
+            details.calories = calcCalories;
+            details.value = calcCalories;
         }
 
         public double CalculateCalories(IFoodApiAdapter thirdPartyApiService)

@@ -1,11 +1,16 @@
-import { useState, FC } from 'react'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { Button } from './ui/button';
-import { LogOut, User } from 'lucide-react';
+import { useState, FC } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "./ui/button";
+import { LogOut, User } from "lucide-react";
+import { GenericProps } from "@/setup/types";
 
-interface HeaderProps {
-  loggedInUser: string,
-  onLogout: () => void
+interface HeaderProps extends GenericProps {
+  onLogout: () => void;
 }
 
 const Header: FC<HeaderProps> = ({ loggedInUser, onLogout }) => {
@@ -18,22 +23,27 @@ const Header: FC<HeaderProps> = ({ loggedInUser, onLogout }) => {
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="lg" className="flex items-center space-x-2" onClick={() => setDropdownOpen(!dropdownOpen)}>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="flex items-center space-x-2"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
                 <User className="h-5 w-5" />
-                <span>{loggedInUser}</span>
+                <span>{loggedInUser.email}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" style={{ zIndex: 9999 }}>
               <DropdownMenuItem onSelect={onLogout} className="cursor-pointer">
-              <LogOut className="h-5 w-5 mr-2" />
-              <span>Logout</span>
+                <LogOut className="h-5 w-5 mr-2" />
+                <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
 export default Header;
