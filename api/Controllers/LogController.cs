@@ -24,6 +24,10 @@ namespace api.Controllers
             _goalRepository = goalRepository;
         }
 
+        /// <summary>
+        /// Create an activity log for a user
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("[action]")]
         public async Task<IActionResult> CreateActivityLog([FromBody] LogDTO payload)
         {
@@ -37,6 +41,10 @@ namespace api.Controllers
             return Ok(activityLog);
         }
 
+        /// <summary>
+        /// Get activity logs for a user
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("[action]")]
         public async Task<ActionResult<IEnumerable<ILog>>> GetActivityLogs([FromQuery] string userId, [FromQuery] DateTime? date)
         {
@@ -44,6 +52,10 @@ namespace api.Controllers
             return Ok(logs);
         }
 
+        /// <summary>
+        /// Remove a specific log
+        /// </summary>
+        /// <returns></returns>
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteLog([FromQuery] string logId)
         {
@@ -57,14 +69,20 @@ namespace api.Controllers
             return NotFound();
         }
 
+        /// <summary>
+        /// Calculate user's daily progress per their daily goal
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("[action]")]
         public async Task<ActionResult<List<UserProgressDTO>>> GetUserProgress([FromQuery] string userId, [FromQuery] DateTime? date)
         {
             if (!string.IsNullOrEmpty(userId))
             {
+                //fetch activity logs and goals
                 var logs = await _activityLogRepository.GetActivityLogsAsync(userId, date);
                 var goals = await _goalRepository.GetGoals(userId);
 
+                //evaluate the target vs achieved based on user activity
                 var progress = goals.Select(goal =>
                 {
                     var log = logs.FirstOrDefault(l => l.type == goal.type);
