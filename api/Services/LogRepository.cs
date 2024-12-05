@@ -21,16 +21,13 @@ namespace api.Services
 
         public async Task SaveActivityLogAsync(ILog activityLog)
         {
-            //activityLog.timestamp = DateTime.Parse(activityLog.timestamp.ToString(AppConstants.DATE_FORMAT));
             await _cosmosDbService.CreateItemAsync(ACTIVITY_CONTAINER, activityLog);
         }
 
         public async Task<IEnumerable<ILog>> GetActivityLogsAsync(string userId, DateTime? date)
         {
-            //var queryDate = date?.ToString(AppConstants.DATE_FORMAT) ?? DateTime.UtcNow.ToString(AppConstants.DATE_FORMAT);
             var query = new QueryDefinition("SELECT * FROM c WHERE c.userId = @userId")
                 .WithParameter("@userId", userId);
-                //.WithParameter("@date", queryDate);
 
             return await _cosmosDbService.QueryItemsAsync<LogDTO>(ACTIVITY_CONTAINER, query);
         }
