@@ -20,18 +20,6 @@ namespace api.Services
 
         public async Task<IEnumerable<AppUser>> GetUsers()
         {
-            //var container = await _cosmosDbService.GetContainerAsync(USER_CONTAINER);
-
-            //var iterator = container.GetItemQueryIterator<AppUser>(query);
-            //var results = new List<AppUser>();
-
-            //while (iterator.HasMoreResults)
-            //{
-            //    var response = await iterator.ReadNextAsync();
-            //    results.AddRange(response);
-            //}
-
-            //return results;
             var query = new QueryDefinition("SELECT * FROM c");
             return await _cosmosDbService.QueryItemsAsync<AppUser>(USER_CONTAINER, query);
         }
