@@ -1,4 +1,3 @@
-using api.Constants;
 using api.Contracts;
 using api.Models.DTO;
 using Microsoft.Azure.Cosmos;
