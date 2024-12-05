@@ -15,6 +15,10 @@ namespace api.Controllers
             _goalRepository = goalRepository;
         }
 
+        /// <summary>
+        /// Create health goal for a user
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("[action]")]
         public async Task<IActionResult> CreateGoal([FromBody] GoalDTO payload)
         {
@@ -27,6 +31,10 @@ namespace api.Controllers
             return Ok(payload);
         }
 
+        /// <summary>
+        /// Get saved goals for a user
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("[action]")]
         public async Task<IActionResult> GetUserGoals([FromQuery] string userId)
         {
@@ -39,6 +47,10 @@ namespace api.Controllers
             return BadRequest("UserId is required");
         }
 
+        /// <summary>
+        /// Remove a goal
+        /// </summary>
+        /// <returns></returns>
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteGoal([FromQuery] string id)
         {
