@@ -49,6 +49,7 @@ namespace api.Models.Log
         [JsonProperty("nf_potassium")]
         public double Potassium { get; set; }
 
+        //all these can be utilized in future if needed
         //public List<FullNutrient> FullNutrients { get; set; }
         //public string NixBrandName { get; set; }
         //public string NixBrandId { get; set; }
