@@ -20,6 +20,7 @@ namespace api.Services
             _thirdPartyApiService = thirdPartyApiService;
         }
 
+        //Create object for different type of activities
         public override ILog CreateActivityLog(LogDTO payload)
         {
             return payload.type.ToLower() switch
@@ -28,7 +29,7 @@ namespace api.Services
                 "meal" => new MealLog(payload.userId, payload.details.calories, payload.details.foodName, _thirdPartyApiService),
                 "water" => new WaterLog(payload.userId, payload.details.waterIntake),
                 "sleep" => new SleepLog(payload.userId, payload.details.duration),
-                // Add more cases for other activity types
+                // add other activity types in future
                 _ => null,
             };
         }
